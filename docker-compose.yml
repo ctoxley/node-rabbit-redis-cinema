@@ -1,0 +1,49 @@
+version: '2'
+services:
+
+  rabbitmq:
+      image: rabbitmq:3-management
+      ports:
+        - "15672:15672"
+        - "5672:5672"
+      environment:
+        RABBITMQ_DEFAULT_PASS: "rabbitmq"
+        RABBITMQ_DEFAULT_USER: "rabbitmq"
+
+  # leedsPersister:
+  #     image: node:alpine
+  #     working_dir: ${PROJECT_DIR}/ticket-persister
+  #     volumes:
+  #       - ./:/${PROJECT_DIR}
+  #     command: "npm start"
+  #     depends_on:
+  #       - webApi
+  #
+  # windermerePersister:
+  #     image: node:alpine
+  #     working_dir: ${PROJECT_DIR}/ticket-persister
+  #     volumes:
+  #       - ./:/${PROJECT_DIR}
+  #     command: "npm start"
+  #     depends_on:
+  #       - webApi
+  #
+  # ulverstonPersister:
+  #     image: node:alpine
+  #     working_dir: ${PROJECT_DIR}/ticket-persister
+  #     volumes:
+  #       - ./:/${PROJECT_DIR}
+  #     command: "npm start"
+  #     depends_on:
+  #       - webApi
+
+  webApi:
+      image: node:alpine
+      ports:
+        - "3001:3001"
+      working_dir: ${PROJECT_DIR}/web-api
+      volumes:
+        - ./:${PROJECT_DIR}
+      command: "npm start"
+      depends_on:
+        - rabbitmq
