@@ -17,7 +17,27 @@ web-api ----> windermere queue -> ticket persister ----> redis
 
 **web-api**:
   - Consumes tickets for cinema.
+
+  POST localhost:3001/tickets
+  ```javascript
+  {
+    "film": "Jaws",
+    "price": 1000,
+    "location": "leeds"
+  }
+  ```
+  *film, price and location are mandatory. price is in pence.*
+
   - Has health check.
+
+  GET localhost:3001/health
+
+  response:
+  ```javascript
+  {
+      "status": "up"
+  }
+  ```
 
 **rabbitmq**
   - Hosts three queues: leeds, windermere and ulverston.

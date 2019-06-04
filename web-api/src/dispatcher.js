@@ -4,12 +4,8 @@ const amqp = require('amqp-connection-manager')
 const onFailureError = new Error('Service unable to process ticket.')
 const connection = amqp.connect(['amqp://rabbitmq:rabbitmq@rabbitmq:5672'])
 
-connection.on('connect', function () {
-  console.info('WEB-API - Connected to RabbitMq!')
-})
-connection.on('disconnect', function (err) {
-  console.warn(`WEB-API - Disconnected from RabbitMq! Err[${err.message}].`)
-})
+connection.on('connect', () => console.info('WEB-API - Connected to RabbitMq!'))
+connection.on('disconnect', (err) => console.warn(`WEB-API - Disconnected from RabbitMq! Err[${err.message}].`))
 
 const isConnected = () => connection.isConnected()
 

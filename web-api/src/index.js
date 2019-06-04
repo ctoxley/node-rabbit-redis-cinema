@@ -1,6 +1,9 @@
 
 const express = require('express')
+const { Right: Success } = require('crocks/Either')
+const { Left: Failure } = require('crocks/Either')
 const dispatcher = require('./dispatcher')
+const validator = require('./validator')
 const uuid = require('uuid/v1')
 
 const app = express()
@@ -17,7 +20,13 @@ app.get('/health', (req, res) => {
 app.post('/tickets', (req, res) => {
   const requestTicket = req.body
   requestTicket.trackingId = uuid()
-  dispatcher.dispatch(requestTicket)
-    .then((ticket) => res.json({ status: 'captured', trackingId: ticket.trackingId }))
-    .catch((err) => res.json({ status: 'failed', reason: err.message }))
+
+  const failAndReport = (reason) => res.json({ status: 'failed', reason: reason })
+  const ticketProcessedSucessfully = () => res.json({ status: 'captured', trackingId: requestTicket.trackingId })
+  validator.failureOrTicket(requestTicket).either(
+    (failure) => failAndReport(failure),
+    (ticket) => dispatcher.dispatch(ticket)
+      .then((ticket) => ticketProcessedSucessfully(ticket))
+      .catch((err) => failAndReport(err.message))
+  )
 })
