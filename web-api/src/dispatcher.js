@@ -17,9 +17,8 @@ const channelWrapper = connection.createChannel({
   json: true,
   setup: (channel) => {
     console.info('WEB-API - Asserting location queues.')
-    channel.assertQueue('leeds', { durable: false })
-    channel.assertQueue('windermere', { durable: false })
-    channel.assertQueue('ulverston', { durable: false })
+    const knownLocations = ['leeds', 'windermere', 'ulverston']
+    knownLocations.forEach(location => channel.assertQueue(location, { durable: false }))
     return channel
   }
 })
