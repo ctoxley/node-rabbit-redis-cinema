@@ -1,6 +1,6 @@
 
 jest.mock('express')
-jest.mock('../src/dispatcher')
+jest.mock('../src/dispatcher', () => jest.fn())
 jest.mock('uuid/v1')
 
 const mockDispatcher = require('../src/dispatcher')

@@ -19,6 +19,9 @@ web-api ----> windermere queue -> ticket persister ----> redis
   - Consumes tickets for cinema.
 
   POST localhost:3001/tickets
+
+  ContentType: application/json
+
   ```javascript
   {
     "film": "Jaws",
@@ -71,3 +74,7 @@ $ npm test
 Check coverage:
 
 $ npm run coverage
+
+## RabbitMq management
+
+http://localhost:15672/

@@ -1,7 +1,5 @@
 
 const express = require('express')
-const { Right: Success } = require('crocks/Either')
-const { Left: Failure } = require('crocks/Either')
 const dispatcher = require('./dispatcher')
 const validator = require('./validator')
 const uuid = require('uuid/v1')

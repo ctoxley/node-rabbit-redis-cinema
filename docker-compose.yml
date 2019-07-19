@@ -10,32 +10,47 @@ services:
         RABBITMQ_DEFAULT_PASS: "rabbitmq"
         RABBITMQ_DEFAULT_USER: "rabbitmq"
 
-  # leedsPersister:
-  #     image: node:alpine
-  #     working_dir: ${PROJECT_DIR}/ticket-persister
-  #     volumes:
-  #       - ./:/${PROJECT_DIR}
-  #     command: "npm start"
-  #     depends_on:
-  #       - webApi
-  #
-  # windermerePersister:
-  #     image: node:alpine
-  #     working_dir: ${PROJECT_DIR}/ticket-persister
-  #     volumes:
-  #       - ./:/${PROJECT_DIR}
-  #     command: "npm start"
-  #     depends_on:
-  #       - webApi
-  #
-  # ulverstonPersister:
-  #     image: node:alpine
-  #     working_dir: ${PROJECT_DIR}/ticket-persister
-  #     volumes:
-  #       - ./:/${PROJECT_DIR}
-  #     command: "npm start"
-  #     depends_on:
-  #       - webApi
+  leedsPersister:
+      image: node:alpine
+      working_dir: ${PROJECT_DIR}/ticket-persister
+      ports:
+        - "3004:3004"
+      environment:
+        - CINEMA_LOCATION=leeds
+        - EXPRESS_PORT=3004
+      volumes:
+        - ./:/${PROJECT_DIR}
+      command: "npm start"
+      depends_on:
+        - webApi
+
+  windermerePersister:
+      image: node:alpine
+      working_dir: ${PROJECT_DIR}/ticket-persister
+      ports:
+        - "3003:3003"
+      environment:
+        - CINEMA_LOCATION=windermere
+        - EXPRESS_PORT=3003
+      volumes:
+        - ./:/${PROJECT_DIR}
+      command: "npm start"
+      depends_on:
+        - webApi
+
+  ulverstonPersister:
+      image: node:alpine
+      working_dir: ${PROJECT_DIR}/ticket-persister
+      ports:
+        - "3002:3002"
+      environment:
+        - CINEMA_LOCATION=ulverston
+        - EXPRESS_PORT=3002
+      volumes:
+        - ./:/${PROJECT_DIR}
+      command: "npm start"
+      depends_on:
+        - webApi
 
   webApi:
       image: node:alpine

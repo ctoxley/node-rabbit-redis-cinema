@@ -10,43 +10,43 @@ let capturedChannelOptions
 const ticket = {
   film: 'Jaws',
   price: 1000,
-  location: 'leeds'
+  location: 'leeds',
+  trackingId: 'trackingId1'
 }
 const mockConnection = jest.fn()
 const mockChannel = jest.fn()
 const mockChannelWrapper = jest.fn()
+const data = { content: JSON.stringify(ticket) }
 mockConnection.on = jest.fn((event, callback) => capturedOnCallbacks.push(callback))
 mockAmqp.connect = jest.fn((connectionStrArr) => mockConnection)
 mockConnection.createChannel = jest.fn((channelOptions) => {
   capturedChannelOptions = channelOptions
+  channelOptions.setup(mockChannel)
   return mockChannelWrapper
 })
-mockChannel.assertQueue = jest.fn()
+mockConnection.isConnected = () => true
+mockChannel.consume = jest.fn((queueName, onMessage) => onMessage(data))
+mockChannel.ack = jest.fn()
 
-const dispatcher = require('../src/dispatcher')
+const consumer = require('../src/consumer')
 
-test('Message dispatched with error', async () => {
-  mockConnection.isConnected = jest.fn(() => true)
-  mockChannelWrapper.sendToQueue = jest.fn((queue, message) => Promise.reject(new Error('Test')))
-  await dispatcher.dispatch(ticket).catch((err) => expect(err.message).toBe('Service unable to process ticket.'))
+test('Message handled unsuccessfully', () => {
+  consumer.startConsumingFor('queueName', () => false)
+  expect(mockChannel.ack).not.toHaveBeenCalled()
 })
 
-test('Message dispatched ', async () => {
-  mockConnection.isConnected = jest.fn(() => true)
-  mockChannelWrapper.sendToQueue = jest.fn((queue, message) => Promise.resolve(message))
-  await dispatcher.dispatch(ticket).then((message) => expect(message).toBe(ticket))
-})
-
-test('Nothing dispatched ', async () => {
-  mockConnection.isConnected = jest.fn(() => false)
-  await dispatcher.dispatch(ticket).catch((err) => expect(err.message).toBe('Service unable to process ticket.'))
+test('Message handled successfully', () => {
+  consumer.startConsumingFor('queueName', (message) => {
+    expect(message).toEqual(ticket)
+    return true
+  })
+  expect(mockChannel.ack).toBeCalledWith(data)
 })
 
 test('Channel created setup', () => {
+  consumer.startConsumingFor('queueName', () => true)
   expect(capturedChannelOptions.setup(mockChannel)).toBe(mockChannel)
-  expect(mockChannel.assertQueue).toBeCalledWith('leeds', { durable: false })
-  expect(mockChannel.assertQueue).toBeCalledWith('windermere', { durable: false })
-  expect(mockChannel.assertQueue).toBeCalledWith('ulverston', { durable: false })
+  expect(mockChannel.consume).toBeCalledWith('queueName', expect.anything())
 })
 
 test('Channel created', () => {
@@ -54,13 +54,12 @@ test('Channel created', () => {
 })
 
 test('Is connected asks connection', () => {
-  mockConnection.isConnected = jest.fn(() => true)
-  expect(dispatcher.isConnected()).toBe(true)
+  expect(consumer.isConnected()).toBe(true)
 })
 
 test('On disconnected log', () => {
   capturedOnCallbacks[1](new Error('Test'))
-  expect(console.warn).toBeCalledWith(`WEB-API - Disconnected from RabbitMq! Err[{}].`)
+  expect(console.warn).toBeCalledWith(`TICKET-PERSISTER - Disconnected from RabbitMq! Err[{}].`)
 })
 
 test('On disconnected to RabbitMq', () => {
@@ -69,7 +68,7 @@ test('On disconnected to RabbitMq', () => {
 
 test('On connected log', () => {
   capturedOnCallbacks[0]()
-  expect(console.info).toBeCalledWith('WEB-API - Connected to RabbitMq!')
+  expect(console.info).toBeCalledWith('TICKET-PERSISTER - Connected to RabbitMq!')
 })
 
 test('On connected to RabbitMq', () => {
