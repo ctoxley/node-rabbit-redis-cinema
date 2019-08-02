@@ -17,22 +17,25 @@ const mockConnection = jest.fn()
 const mockChannel = jest.fn()
 const mockChannelWrapper = jest.fn()
 const data = { content: JSON.stringify(ticket) }
+mockChannelWrapper.addSetup = jest.fn(setup => setup(mockChannel))
 mockConnection.on = jest.fn((event, callback) => capturedOnCallbacks.push(callback))
-mockAmqp.connect = jest.fn((connectionStrArr) => mockConnection)
-mockConnection.createChannel = jest.fn((channelOptions) => {
+mockAmqp.connect = jest.fn(connectionStrArr => mockConnection)
+mockConnection.createChannel = jest.fn(channelOptions => {
   capturedChannelOptions = channelOptions
   channelOptions.setup(mockChannel)
   return mockChannelWrapper
 })
 mockConnection.isConnected = () => true
 mockChannel.consume = jest.fn((queueName, onMessage) => onMessage(data))
-mockChannel.ack = jest.fn()
+mockChannel.assertQueue = jest.fn()
+mockChannel.prefetch = jest.fn()
+mockChannelWrapper.ack = jest.fn()
 
 const consumer = require('../src/consumer')
 
 test('Message handled unsuccessfully', () => {
   consumer.startConsumingFor('queueName', () => false)
-  expect(mockChannel.ack).not.toHaveBeenCalled()
+  expect(mockChannelWrapper.ack).not.toHaveBeenCalled()
 })
 
 test('Message handled successfully', () => {
@@ -40,7 +43,7 @@ test('Message handled successfully', () => {
     expect(message).toEqual(ticket)
     return true
   })
-  expect(mockChannel.ack).toBeCalledWith(data)
+  expect(mockChannelWrapper.ack).toBeCalledWith(data)
 })
 
 test('Channel created setup', () => {

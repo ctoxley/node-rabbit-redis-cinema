@@ -8,25 +8,35 @@ connection.on('disconnect', (err) => console.warn(`TICKET-PERSISTER - Disconnect
 
 const isConnected = () => connection.isConnected()
 
-const createChannelWrapper = (queueName, onMessage) => connection.createChannel({
+const channelWrapper = connection.createChannel({
   json: true,
   setup: channel => {
-    console.info(`TICKET-PERSISTER - Consuming queue[${queueName}].`)
-    channel.consume(queueName, onMessage(channel))
+    console.info(`TICKET-PERSISTER - Channel created.`)
     return channel
   }
 })
 
-const parseAndAckMessage = messageHandler => channel => data => {
-  var message = JSON.parse(data.content.toString())
-  console.log(`TICKET-PERSISTER - Message[${JSON.stringify(message)}] recieved.`)
-  if (messageHandler(message)) {
-    channel.ack(data)
+const startConsuming = (queueName, onMessage) => {
+  channelWrapper.addSetup(channel => {
+    return Promise.all([
+      channel.assertQueue(queueName, { durable: false }),
+      channel.prefetch(1),
+      channel.consume(queueName, onMessage)
+    ])
+  })
+}
+
+const parseAndAckMessage = messageHandler => data => {
+  const json = data.content.toString()
+  console.info(`TICKET-PERSISTER - Message[${json}] recieved.`)
+  const obj = JSON.parse(json)
+  if (messageHandler(obj)) {
+    channelWrapper.ack(data)
   }
 }
 
 const startConsumingFor = (queueName, messageHandler) => {
-  createChannelWrapper(queueName, parseAndAckMessage(messageHandler))
+  startConsuming(queueName, parseAndAckMessage(messageHandler))
 }
 
 module.exports = { isConnected, startConsumingFor }

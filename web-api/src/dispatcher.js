@@ -32,8 +32,7 @@ const onDispatchFailure = (ticket) => (err) => {
 const dispatch = (ticket) => {
   if (isConnected() === false) { return Promise.reject(onFailureError) }
 
-  const json = JSON.stringify(ticket)
-  return channelWrapper.sendToQueue(ticket.location, json)
+  return channelWrapper.sendToQueue(ticket.location, ticket)
     .then(onDispatchSuccess(ticket))
     .catch(onDispatchFailure(ticket))
 }

@@ -5,7 +5,8 @@
   "dependencies": {
     "amqp-connection-manager": "^2.3.1",
     "amqplib": "^0.5.3",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "jest": "^24.8.0",

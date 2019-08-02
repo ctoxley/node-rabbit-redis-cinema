@@ -4,6 +4,7 @@ const cinemaLocation = process.env.CINEMA_LOCATION
 
 const express = require('express')
 const consumer = require('./consumer')
+const persister = require('./persister')
 
 const app = express()
 app.use(express.json())
@@ -14,6 +15,9 @@ app.get('/health', (req, res) => {
   res.json({ status: health })
 })
 
-const onMessage = (json) => true
+const onMessage = (ticket) => {
+  persister.storeTicket(ticket)
+  return true
+}
 
 consumer.startConsumingFor(cinemaLocation, onMessage)

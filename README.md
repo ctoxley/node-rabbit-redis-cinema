@@ -78,3 +78,13 @@ $ npm run coverage
 ## RabbitMq management
 
 http://localhost:15672/
+
+## Redis
+
+Read ticket:
+
+$ docker exec -it $1 /bin/bash
+
+$ redis-ci
+
+$ hgetall ticket:trackingId

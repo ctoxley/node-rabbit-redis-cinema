@@ -4,8 +4,10 @@ process.env.CINEMA_LOCATION = 'cinemaLocation'
 
 jest.mock('express')
 jest.mock('../src/consumer', () => jest.fn())
+jest.mock('../src/persister', () => jest.fn())
 
 const mockConsumer = require('../src/consumer')
+const mockPersister = require('../src/persister')
 const mockExpress = require('express')
 const mockApp = jest.fn()
 const mockRequest = jest.fn()
@@ -28,7 +30,11 @@ mockApp.get = jest.fn((id, handler) => {
   handler(mockRequest, mockResponse)
 })
 mockConsumer.isConnected = () => true
-mockConsumer.startConsumingFor = jest.fn((queueName, messageHandler) => messageHandler(ticket))
+mockConsumer.startConsumingFor = jest.fn((queueName, messageHandler) => {
+  const result = messageHandler(ticket)
+  expect(result).toBeTruthy()
+})
+mockPersister.storeTicket = jest.fn()
 
 require('../src/index')
 
@@ -47,4 +53,8 @@ test('Express using json', () => {
 
 test('Queue consumered', () => {
   expect(mockConsumer.startConsumingFor).toBeCalledWith('cinemaLocation', expect.anything())
+})
+
+test('Ticket persisted', () => {
+  expect(mockPersister.storeTicket).toBeCalledWith(ticket)
 })
